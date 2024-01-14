@@ -1,0 +1,47 @@
+name: Lint-Test
+run-name: Lint-Test - ${{ github.ref_name }} - ${{ github.sha }}
+
+on:
+  push
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: Lint
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          version: 'stable'
+
+      - name: Install Project Dependencies
+        run: go mod download
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.52
+
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+    name: Test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          version: 'stable'
+
+      - name: Install Project Dependencies
+        run: go mod download
+
+      - name: Test
+        run: go test -v ./...
