@@ -29,10 +29,6 @@ func (e *event) SetEndTime(t time.Time) {
 	(*e).EndTime = t
 }
 
-func (e *event) GetID() int {
-	return e.ID
-}
-
 func (e *event) Clone() Event {
 	return &event{
 		StartTime: e.StartTime,

@@ -9,7 +9,6 @@ type Event interface {
 	GetEndTime() time.Time
 	SetStartTime(time.Time)
 	SetEndTime(time.Time)
-	GetID() int
 	Clone() Event
 }
 
@@ -249,13 +248,4 @@ func (e *Engine) Merge() {
 	}
 
 	e.mergingFinished = true
-	printIDs(e.MergedSchedule)
-}
-
-func printIDs(events []Event) []int {
-	ids := make([]int, len(events))
-	for i, event := range events {
-		ids[i] = event.GetID()
-	}
-	return ids
 }
