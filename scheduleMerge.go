@@ -142,15 +142,16 @@ func (e *Engine) merge(rawEvent Event, PCMEs []Event) (mergedSchedule []Event) {
 			}
 
 			// If we are trimming overlaps, we can trim the current PCME and insert the rawEvent after it.
-			event := PCME.Clone()
-			event.SetEndTime(rawStart)
+			pcmePart := PCME.Clone()
+			pcmePart.SetEndTime(rawStart)
 
 			// if rawInserted {
 			//     // Because we are processing the PCMEs in time order, we can safely assume that the rawEvent
 			//     // has not yet been inserted.
 			// }
 
-			mergedSchedule = append(mergedSchedule, event, rawEvent)
+			// e.TrimOverlaps == true && rawInserted == false
+			mergedSchedule = append(mergedSchedule, pcmePart, rawEvent)
 			rawInsertedIndex = PCMEIndex + 1
 			rawInserted = true
 			continue
@@ -196,43 +197,44 @@ func (e *Engine) merge(rawEvent Event, PCMEs []Event) (mergedSchedule []Event) {
 			// If we are trimming overlaps, we can split the current PCME into two parts and insert the rawEvent
 			// between.
 			var (
-				event1 Event
-				event2 Event
+				pcmePart1 Event
+				pcmePart2 Event
 			)
 			if !rawStart.Equal(pcmeStart) {
-				event1 = PCME.Clone()
-				event1.SetEndTime(rawStart)
+				pcmePart1 = PCME.Clone()
+				pcmePart1.SetEndTime(rawStart)
 			}
 			if !rawEnd.Equal(pcmeEnd) {
-				event2 = PCME.Clone()
-				event2.SetStartTime(rawEnd)
+				pcmePart2 = PCME.Clone()
+				pcmePart2.SetStartTime(rawEnd)
 			}
 
 			if !rawInserted {
-				if event1 != nil {
-					mergedSchedule = append(mergedSchedule, event1)
+				if pcmePart1 != nil {
+					mergedSchedule = append(mergedSchedule, pcmePart1)
 				}
 				mergedSchedule = append(mergedSchedule, rawEvent)
-				if event2 != nil {
-					mergedSchedule = append(mergedSchedule, event2)
+				if pcmePart2 != nil {
+					mergedSchedule = append(mergedSchedule, pcmePart2)
 				}
 
 				mergedSchedule = append(mergedSchedule, PCMEs[PCMEIndex+1:]...)
 				break
 			}
 
+			// e.TrimOverlaps == true && rawInserted == true
 			var (
 				wip       []Event
 				beforeRaw = mergedSchedule[:rawInsertedIndex]
 				afterRaw  = mergedSchedule[rawInsertedIndex+1:]
 			)
 
-			if event1 != nil {
-				wip = append(wip, event1)
+			if pcmePart1 != nil {
+				wip = append(wip, pcmePart1)
 			}
 			wip = append(wip, rawEvent)
-			if event2 != nil {
-				wip = append(wip, event2)
+			if pcmePart2 != nil {
+				wip = append(wip, pcmePart2)
 			}
 
 			mergedSchedule = append(
@@ -262,17 +264,17 @@ func (e *Engine) merge(rawEvent Event, PCMEs []Event) (mergedSchedule []Event) {
 			}
 
 			// If we are trimming overlaps, we can trim the current PCME and insert the rawEvent before it.
-			event := PCME.Clone()
-			event.SetStartTime(rawEnd)
+			pcmePart := PCME.Clone()
+			pcmePart.SetStartTime(rawEnd)
 
 			if !rawInserted {
-				mergedSchedule = append(mergedSchedule, rawEvent, event)
+				mergedSchedule = append(mergedSchedule, rawEvent, pcmePart)
 				rawInsertedIndex = PCMEIndex + 1
 				rawInserted = true
 				continue
 			}
 
-			mergedSchedule = append(mergedSchedule, event)
+			mergedSchedule = append(mergedSchedule, pcmePart)
 			continue
 		}
 
