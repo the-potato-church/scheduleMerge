@@ -4,6 +4,8 @@ import (
 	"sort"
 	"testing"
 	"time"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 type event struct {
@@ -2238,6 +2240,2334 @@ func TestEngine_Merge(t *testing.T) {
 			},
 			trimOverlaps: true,
 		},
+		{
+			// more desirable event : [----)
+			// less desirable event : [----)
+			// least desirable event:     [----)
+			name: "3 events-[2.a,3.a]",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event : [--------)
+			// less desirable event :   [----)
+			// least desirable event:       [----)
+			name: "3 events-[2.a,3.b]a",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 45, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 45, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 45, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event : [----------)
+			// less desirable event :   [----)
+			// least desirable event:       [----)
+			name: "3 events-[2.a,3.b]b",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event : [------------)
+			// less desirable event :   [----)
+			// least desirable event:       [----)
+			name: "3 events-[2.a,3.b]c",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :  [----)
+			// less desirable event :[---------)
+			// least desirable event:        [----)
+			name: "3 events-[2.a,3.c]a",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :  [-------)
+			// less desirable event :[-----------)
+			// least desirable event:        [------)
+			name: "3 events-[2.a,3.c]b",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 45, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 45, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 45, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :[-----)
+			// less desirable event :[----)
+			// least desirable event:   [----)
+			name: "3 events-[2.a,3.d]a",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 45, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 45, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 45, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :[-------)
+			// less desirable event :[----)
+			// least desirable event:   [----)
+			name: "3 events-[2.a,3.d]b",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :[----------)
+			// less desirable event :[----)
+			// least desirable event:   [----)
+			name: "3 events-[2.a,3.d]c",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :[----)
+			// less desirable event :   [----)
+			// least desirable event:      [----)
+			name: "3 events-[2.a,3.e]a",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :[-------)
+			// less desirable event :   [------)
+			// least desirable event:      [-----)
+			name: "3 events-[2.a,3.e]b",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 15, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 15, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 15, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :[----)
+			// less desirable event :          [----)
+			// least desirable event:       [----)
+			name: "3 events-[2.b,1.a]a",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :[--------)
+			// less desirable event :           [----)
+			// least desirable event:       [-----)
+			name: "3 events-[2.b,1.a]b",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :         [----)
+			// less desirable event :   [----)
+			// least desirable event: [----)
+			name: "3 events-[2.b,1.b]",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event : [-----)
+			// less desirable event :    [----)
+			// least desirable event:  [----)
+			name: "3 events-[2.b,2.a]a",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 0, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :   [---)
+			// less desirable event :    [----)
+			// least desirable event:  [----)
+			name: "3 events-[2.b,2.a]b",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :    [----)
+			// less desirable event :    [----)
+			// least desirable event:  [----)
+			name: "3 events-[2.b,3.a]",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event : [---------)
+			// less desirable event :    [----)
+			// least desirable event:  [----)
+			name: "3 events-[2.b,3.b]a",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event : [---------)
+			// less desirable event :    [----)
+			// least desirable event:  [----)
+			name: "3 events-[2.b,3.b]a",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :   [------)
+			// less desirable event :    [----)
+			// least desirable event:  [----)
+			name: "3 events-[2.b,3.b]b",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :     [----)
+			// less desirable event :    [------)
+			// least desirable event:  [----)
+			name: "3 events-[2.b,3.c]",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :    [-----)
+			// less desirable event :    [----)
+			// least desirable event:  [----)
+			name: "3 events-[2.b,3.d]",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event : [-------)
+			// less desirable event :    [----)
+			// least desirable event:  [----)
+			name: "3 events-[2.b,3.e]a",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :   [-----)
+			// less desirable event :    [----)
+			// least desirable event:  [----)
+			name: "3 events-[2.b,3.e]b",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event : [----)
+			// less desirable event :      [----)
+			// least desirable event:      [----)
+			name: "3 events-[3.a,1.a]",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :      [----)
+			// less desirable event : [----)
+			// least desirable event: [----)
+			name: "3 events-[3.a,1.b]",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event : [----)
+			// less desirable event :    [----)
+			// least desirable event:    [----)
+			name: "3 events-[3.a,2.a]",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :   [----)
+			// less desirable event : [----)
+			// least desirable event: [----)
+			name: "3 events-[3.a,2.b]",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event : [------)
+			// less desirable event :  [----)
+			// least desirable event:  [----)
+			name: "3 events-[3.a,3.b]",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :  [----)
+			// less desirable event : [------)
+			// least desirable event: [------)
+			name: "3 events-[3.a,3.c]",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event : [------)
+			// less desirable event : [----)
+			// least desirable event: [----)
+			name: "3 events-[3.a,3.d]",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event : [------)
+			// less desirable event :   [----)
+			// least desirable event:   [----)
+			name: "3 events-[3.a,3.e]",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event : [----)
+			// less desirable event :      [------)
+			// least desirable event:       [----)
+			name: "3 events-[3.b,1.a]",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :        [----)
+			// less desirable event : [------)
+			// least desirable event:  [----)
+			name: "3 events-[3.b,1.b]",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 4, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 4, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event : [----)
+			// less desirable event :   [------)
+			// least desirable event:    [----)
+			name: "3 events-[3.b,2.a]",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :      [----)
+			// less desirable event : [------)
+			// least desirable event:  [----)
+			name: "3 events-[3.b,2.b]",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 4, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 4, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event : [------)
+			// less desirable event : [------)
+			// least desirable event:  [----)
+			name: "3 events-[3.b,3.a]",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :  [----)
+			// less desirable event : [------)
+			// least desirable event:  [----)
+			name: "3 events-[3.b,3.c]",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event : [----)
+			// less desirable event : [------)
+			// least desirable event:  [----)
+			name: "3 events-[3.b,3.d]",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :   [----)
+			// less desirable event : [------)
+			// least desirable event:  [----)
+			name: "3 events-[3.b,3.e]",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event : [----)
+			// less desirable event :       [----)
+			// least desirable event:      [------)
+			name: "3 events-[3.c,1.a]a",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event : [----)
+			// less desirable event :      [----)
+			// least desirable event:     [------)
+			name: "3 events-[3.c,1.a]b",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :       [----)
+			// less desirable event :  [----)
+			// least desirable event: [------)
+			name: "3 events-[3.c,1.b]a",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :        [----)
+			// less desirable event :  [----)
+			// least desirable event: [------)
+			name: "3 events-[3.c,1.b]b",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 4, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 4, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event : [----)
+			// less desirable event :   [----)
+			// least desirable event:  [------)
+			name: "3 events-[3.c,2.a]a",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 45, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 45, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 45, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :    [----)
+			// less desirable event :      [----)
+			// least desirable event:  [---------)
+			name: "3 events-[3.c,2.a]a",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 45, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 45, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 45, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :    [----)
+			// less desirable event :  [----)
+			// least desirable event: [--------)
+			name: "3 events-[3.c,2.b]a",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 4, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 45, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 45, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 45, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 4, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :    [-----)
+			// less desirable event :  [----)
+			// least desirable event: [------)
+			name: "3 events-[3.c,2.b]b",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 45, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 45, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 4, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 45, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 45, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 4, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :  [----)
+			// less desirable event :  [----)
+			// least desirable event: [------)
+			name: "3 events-[3.c,3.a]",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 45, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 45, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :  [------)
+			// less desirable event :   [----)
+			// least desirable event: [--------)
+			name: "3 events-[3.c,3.b]a",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 4, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 4, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event : [-------)
+			// less desirable event :   [----)
+			// least desirable event: [--------)
+			name: "3 events-[3.c,3.b]b",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 4, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 4, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :  [-------)
+			// less desirable event :   [----)
+			// least desirable event: [--------)
+			name: "3 events-[3.c,3.b]c",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 4, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 4, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 4, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event : [--------)
+			// less desirable event :   [----)
+			// least desirable event:  [------)
+			name: "3 events-[3.c,3.b]d",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 4, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 4, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			trimOverlaps: true,
+		},
+		{
+			// more desirable event :   [----)
+			// less desirable event :  [------)
+			// least desirable event: [--------)
+			name: "3 events-[3.c,3.c]",
+			testSchedule: schedule{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 4, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+			},
+			expectedSchedule: []event{
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 1, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 2, 0, 0, 0, time.UTC),
+					ID:        3,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 3, 0, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 1, 0, 0, 0, time.UTC),
+					ID:        2,
+				},
+				{
+					StartTime: time.Date(2020, 1, 1, 3, 30, 0, 0, time.UTC),
+					EndTime:   time.Date(2020, 1, 1, 4, 0, 0, 0, time.UTC),
+					CreatedAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+					ID:        1,
+				},
+			},
+			trimOverlaps: true,
+		},
 	}
 
 	for _, tc := range tcs {
@@ -2245,39 +4575,30 @@ func TestEngine_Merge(t *testing.T) {
 			e := NewEngine(tc.testSchedule, tc.trimOverlaps)
 			e.Merge()
 			mergedSchedule := e.MergedSchedule
-			if len(mergedSchedule) != len(tc.expectedSchedule) {
-				evs := make([]event, len(mergedSchedule))
-				for i := range mergedSchedule {
-					evs[i] = *mergedSchedule[i].(*event)
-				}
-				t.Logf("mergedSchedule: %+v", evs)
-				t.Logf("expectedSchedule: %+v", tc.expectedSchedule)
+
+			evs := make([]event, len(mergedSchedule))
+			for i := range mergedSchedule {
+				evs[i] = *(mergedSchedule[i].(*event))
+			}
+
+			if len(evs) != len(tc.expectedSchedule) {
+				t.Logf("mergedSchedule:\n\t%+v\n", evs)
+				t.Logf("expectedSchedule:\n\t%+v\n", tc.expectedSchedule)
 				t.Fatalf("expected %d events, got %d", len(tc.expectedSchedule), len(mergedSchedule))
 			}
-			for i := range mergedSchedule {
-				mergedEvent := mergedSchedule[i].(*event)
+
+			var failed bool
+			for i, gotEvent := range evs {
 				expectedEvent := tc.expectedSchedule[i]
 
-				if !mergedEvent.GetStartTime().Equal(expectedEvent.StartTime) {
-					t.Logf("mergedEvent: %+v", mergedEvent)
-					t.Logf("expectedEvent: %+v", expectedEvent)
-					t.Errorf("expected start time %s, got %s", expectedEvent.StartTime, mergedEvent.GetStartTime())
+				if gotEvent != expectedEvent {
+					t.Logf("event %d seems to be wrong:\n%s", i+1, cmp.Diff(gotEvent, expectedEvent))
+					failed = true
 				}
-				if !mergedEvent.GetEndTime().Equal(expectedEvent.EndTime) {
-					t.Logf("mergedEvent: %+v", mergedEvent)
-					t.Logf("expectedEvent: %+v", expectedEvent)
-					t.Errorf("expected end time %s, got %s", expectedEvent.EndTime, mergedEvent.GetEndTime())
-				}
-				if !mergedEvent.CreatedAt.Equal(expectedEvent.CreatedAt) {
-					t.Logf("mergedEvent: %+v", mergedEvent)
-					t.Logf("expectedEvent: %+v", expectedEvent)
-					t.Errorf("expected created at %s, got %s", expectedEvent.CreatedAt, mergedEvent.CreatedAt)
-				}
-				if mergedEvent.ID != expectedEvent.ID {
-					t.Logf("mergedEvent: %+v", mergedEvent)
-					t.Logf("expectedEvent: %+v", expectedEvent)
-					t.Errorf("expected ID %d, got %d", expectedEvent.ID, mergedEvent.ID)
-				}
+			}
+
+			if failed {
+				t.Fatalf("expected merged schedule to be:\n\t%+v\ngot:\n\t%+v", tc.expectedSchedule, evs)
 			}
 		})
 	}
