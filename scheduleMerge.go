@@ -4,18 +4,30 @@ import (
 	"time"
 )
 
+// Event is a time-bounded entity. It has a start time and an end time.
+//
+// It is assumed that the start time is always before the end time.
+//
+// An Event is considered to be bounded by its start and end times as follows:
+//
+//	[StartTime, EndTime)
 type Event interface {
+	// GetStartTime returns the start time of the Event.
 	GetStartTime() time.Time
+	// GetEndTime returns the end time of the Event.
 	GetEndTime() time.Time
+	// SetStartTime sets the start time of the Event.
 	SetStartTime(time.Time)
+	// SetEndTime sets the end time of the Event.
 	SetEndTime(time.Time)
+	// Clone returns a deep copy of the Event.
 	Clone() Event
 }
 
 // Schedule is a slice of Event(s).
 type Schedule interface {
 	SortByDesirability() // Sorts (in place) the schedule by desirability in ascending order.
-	GetEvents() []Event
+	GetEvents() []Event  // Returns the events in the schedule.
 }
 
 func NewEngine(rawSchedule Schedule, trimOverlaps bool) *Engine {
@@ -27,10 +39,16 @@ func NewEngine(rawSchedule Schedule, trimOverlaps bool) *Engine {
 	}
 }
 
+// Engine is the main struct that is used to merge the potentially conflicting raw events into a single conflict-free
+// schedule.
 type Engine struct {
-	RawSchedule    []Event
+	// The raw schedule passed to the engine via the NewEngine constructor.
+	RawSchedule []Event
+	// The merged schedule that is created by the engine.
 	MergedSchedule []Event
-	TrimOverlaps   bool
+	// Indicates whether the engine should trim the overlaps between the events. If true, the engine will trim the
+	// overlaps between the events. If false, the engine will discard the less desirable conflicting event.
+	TrimOverlaps bool
 
 	mergingFinished bool
 }
